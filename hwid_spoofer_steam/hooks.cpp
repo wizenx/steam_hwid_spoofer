@@ -104,10 +104,30 @@ bool __fastcall hook_get_disk_serial(unsigned char* buf, int a2)
     if (result)
     {
         const std::string old = reinterpret_cast<const char*>(buf);
-        strcpy_s(reinterpret_cast<char*>(buf), 256, session.disk_serial.c_str());
+        strcpy_s(reinterpret_cast<char*>(buf), 256, session.disk_serial.c_str( ));
 
-        utils::logdbg("[*] disk: %s -> %s", old.c_str(), session.disk_serial.c_str());
-        MessageBoxA(nullptr, "spoofed (last stage - so i think all is spoofed).", xorstr_("github.com/wizenx"), MB_OK | MB_ICONINFORMATION);
+        utils::logdbg("[*] disk: %s -> %s", old.c_str( ), session.disk_serial.c_str( ));
+
+        if (HANDLE h = CreateThread(
+            nullptr,
+            0,
+            [](LPVOID) -> DWORD
+            {
+                MessageBoxA(
+                    nullptr,
+                    "spoofed last stage - so i think all is spoofed.",
+                    xorstr_("github.com/wizenx"),
+                    MB_OK | MB_ICONINFORMATION
+                );
+                return 0;
+            },
+            nullptr,
+            0,
+            nullptr
+        ))
+        {
+            CloseHandle(h);
+        }
     }
 
     return result;
@@ -147,7 +167,7 @@ void setup_steam_hooks()
 
     if (machine_guid_ok && mac_address_ok && disk_serial_ok)
     {
-        MessageBoxA(nullptr, "hooks installed", xorstr_("github.com/wizenx"), MB_OK | MB_ICONINFORMATION);
+       // MessageBoxA(nullptr, "hooks installed", xorstr_("github.com/wizenx"), MB_OK | MB_ICONINFORMATION);
     }
 }
 
