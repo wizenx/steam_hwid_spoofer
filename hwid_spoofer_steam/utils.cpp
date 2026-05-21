@@ -206,12 +206,29 @@ namespace utils
         return address + 5 + relative_offset;
     }
 
+    std::string gen_rand_pc_name()
+    {
+        static constexpr char k_alnum_chars[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        auto engine = make_rng( );
+        std::string pc_name = "DESKTOP-";
+
+        std::uniform_int_distribution<> char_dist(0, sizeof(k_alnum_chars) - 2);
+        for (int i = 0; i < 7; ++i)
+        {
+            pc_name += k_alnum_chars[char_dist(engine)];
+        }
+
+        return pc_name;
+    }
+
     session_profile generate_session_profile()
     {
         session_profile profile;
         profile.machine_guid = gen_rand_guid();
         profile.mac_address = gen_rand_mac();
         profile.disk_serial = gen_rand_disk();
+		profile.pc_name = gen_rand_pc_name();
         return profile;
     }
 } 
