@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37216.2
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hwid_spoofer_steam", "hwid_spoofer_steam\hwid_spoofer_steam.vcxproj", "{343D1DF6-C7E4-4FFB-BA7C-E1391DE7440C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "injector", "injector\injector.vcxproj", "{CA458565-A4CF-4F8E-895C-6524195E42EF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{343D1DF6-C7E4-4FFB-BA7C-E1391DE7440C}.Debug|x64.ActiveCfg = Debug|x64
+		{343D1DF6-C7E4-4FFB-BA7C-E1391DE7440C}.Debug|x64.Build.0 = Debug|x64
+		{343D1DF6-C7E4-4FFB-BA7C-E1391DE7440C}.Release|x64.ActiveCfg = Release|x64
+		{343D1DF6-C7E4-4FFB-BA7C-E1391DE7440C}.Release|x64.Build.0 = Release|x64
+		{CA458565-A4CF-4F8E-895C-6524195E42EF}.Debug|x64.ActiveCfg = Debug|x64
+		{CA458565-A4CF-4F8E-895C-6524195E42EF}.Debug|x64.Build.0 = Debug|x64
+		{CA458565-A4CF-4F8E-895C-6524195E42EF}.Release|x64.ActiveCfg = Release|x64
+		{CA458565-A4CF-4F8E-895C-6524195E42EF}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2C99C786-DC15-4D7C-BA42-06EB9F46EA77}
+	EndGlobalSection
+EndGlobal
