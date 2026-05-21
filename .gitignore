@@ -27,7 +27,6 @@ out/
 *.ilk
 *.exe
 *.dll
-*.lib
 *.exp
 *.pch
 *.ipch
