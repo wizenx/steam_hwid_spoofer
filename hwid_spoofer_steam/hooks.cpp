@@ -17,32 +17,15 @@ static session_profile session;
 
 static hooks::get_machine_guid_fn orig_get_machine_guid = nullptr;
 static hooks::get_mac_address_fn orig_get_mac_address = nullptr;
+static hooks::get_mac_wmi_fn orig_get_mac_address_two = nullptr;
 static hooks::get_disk_serial_fn orig_get_disk_serial = nullptr;
+
 
 static hooks::get_local_hostname_fn orig_get_local_hostname = nullptr;
 
 static PVOID g_dll_notify_cookie = nullptr;
 static bool steam_hooks_placed = false;
 static bool tier0_hooks_placed = false;
-
-static std::wstring to_lower(std::wstring s)
-{
-    std::transform(s.begin( ), s.end( ), s.begin( ),
-        [](wchar_t c) { return (wchar_t)towlower(c); });
-    return s;
-}
-
-std::string fmt_mac(const void* ptr)
-{
-    if (ptr == nullptr) return "null";
-
-    const auto* mac = reinterpret_cast<const unsigned char*>(ptr);
-    char buf[18];
-    std::snprintf(buf, sizeof(buf), "%02X-%02X-%02X-%02X-%02X-%02X",
-        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
-    return buf;
-}
 
 bool install_hook(LPVOID target, LPVOID detour, LPVOID* original, const char* success_message, const char* error_message)
 {
@@ -83,12 +66,53 @@ char __fastcall hook_get_machine_guid(unsigned char* buf, DWORD size)
 DWORD __fastcall hook_get_mac_address(unsigned long long* a1)
 {
     const DWORD result = orig_get_mac_address(a1);
+
     if (a1 != nullptr)
     {
-        char* buf = reinterpret_cast<char*>(a1);
-        const std::string old = fmt_mac(a1);
-        strcpy_s(buf, 256, session.mac_address.c_str( ));
-        utils::logdbg("[*] mac: %s -> %s", old.c_str( ), session.mac_address.c_str( ));
+        const std::string old_mac_str = utils::fmt_mac(a1);
+
+        int bytes[6];
+        if (std::sscanf(session.mac_address.c_str( ), "%02x-%02x-%02x-%02x-%02x-%02x",
+            &bytes[0], &bytes[1], &bytes[2], &bytes[3], &bytes[4], &bytes[5]) == 6)
+        {
+            unsigned char mac_bin[6];
+            for (int i = 0; i < 6; ++i)
+                mac_bin[i] = static_cast<unsigned char>(bytes[i]);
+
+            *a1 = 0; 
+            std::memcpy(a1, mac_bin, 6); 
+
+            utils::logdbg("[*] mac 1: %s -> %s",
+                old_mac_str.c_str( ),
+                session.mac_address.c_str( ));
+        }
+    }
+    return result;
+}
+
+__int64 __fastcall hook_get_mac_two(unsigned __int64* a1, char a2)
+{
+    __int64 result = orig_get_mac_address_two(a1, a2);
+
+    if (a1 != nullptr)
+    {
+        const std::string old_mac_str = utils::fmt_mac(a1);
+
+        int bytes[6];
+        if (std::sscanf(session.mac_address.c_str( ), "%02x-%02x-%02x-%02x-%02x-%02x",
+            &bytes[0], &bytes[1], &bytes[2], &bytes[3], &bytes[4], &bytes[5]) == 6)
+        {
+            unsigned char mac_bin[6];
+            for (int i = 0; i < 6; ++i)
+                mac_bin[i] = static_cast<unsigned char>(bytes[i]);
+
+            *a1 = 0;
+            std::memcpy(a1, mac_bin, 6);
+
+            utils::logdbg("[*] mac 2: %s -> %s",
+                old_mac_str.c_str( ),
+                session.mac_address.c_str( ));
+        }
     }
     return result;
 }
@@ -140,12 +164,17 @@ void setup_steam_hooks(HMODULE steamclient_handle)
         utils::find_pattern(xorstr_("steamclient64.dll"), patterns::machine_guid_call));
     const uintptr_t mac_address_target = utils::get_absolute_address(
         utils::find_pattern(xorstr_("steamclient64.dll"), patterns::mac_address_call));
+    const uintptr_t mac_address_target_two = utils::get_absolute_address(
+		utils::find_pattern(xorstr_("steamclient64.dll"), patterns::mac_address_call_2));
     const uintptr_t disk_serial_target = utils::get_absolute_address(
         utils::find_pattern(xorstr_("steamclient64.dll"), patterns::disk_serial_call));
 
+
     install_hook(reinterpret_cast<LPVOID>(machine_guid_target), reinterpret_cast<LPVOID>(&hook_get_machine_guid), reinterpret_cast<LPVOID*>(&orig_get_machine_guid), "machine guid hook installed.", "could not resolve machine guid target.");
     install_hook(reinterpret_cast<LPVOID>(mac_address_target), reinterpret_cast<LPVOID>(&hook_get_mac_address), reinterpret_cast<LPVOID*>(&orig_get_mac_address), "mac address hook installed.", "could not resolve mac address target.");
+    install_hook(reinterpret_cast<LPVOID>(mac_address_target_two), reinterpret_cast<LPVOID>(&hook_get_mac_two), reinterpret_cast<LPVOID*>(&orig_get_mac_address_two), "mac address 2 hook installed.", "could not resolve mac address 2 target.");
     install_hook(reinterpret_cast<LPVOID>(disk_serial_target), reinterpret_cast<LPVOID>(&hook_get_disk_serial), reinterpret_cast<LPVOID*>(&orig_get_disk_serial), "disk serial hook installed.", "could not resolve disk serial target.");
+    
 }
 
 void setup_tier0_hooks(HMODULE tier0_handle)
@@ -178,7 +207,7 @@ void CALLBACK dll_notification_callback(ULONG reason, const LDR_DLL_NOTIFICATION
         data->Loaded.BaseDllName->Length / sizeof(wchar_t)
     );
 
-    dll_name = to_lower(dll_name);
+    dll_name = utils::to_lower(dll_name);
 
     if (!tier0_hooks_placed && dll_name == xorstr_(L"tier0_s64.dll"))
     {

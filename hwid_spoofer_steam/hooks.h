@@ -38,9 +38,10 @@ namespace hooks
 
 	using get_machine_guid_fn = char(__fastcall*)(unsigned char* buf, DWORD size);
 	using get_mac_address_fn = DWORD(__fastcall*)(unsigned long long* a1);
+    using get_mac_wmi_fn = __int64(__fastcall*)(unsigned __int64* a1, char a2);
 	using get_disk_serial_fn = bool(__fastcall*)(unsigned char* buf, int a2);
 	using load_library_exw_fn = HMODULE(WINAPI*)(LPCWSTR name, HANDLE file, DWORD flags);
-	
+
 	using get_local_hostname_fn = const char* (__fastcall*)();
 
 	void set_session_profile(const session_profile& profile);

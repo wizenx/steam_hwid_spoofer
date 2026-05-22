@@ -222,6 +222,25 @@ namespace utils
         return pc_name;
     }
 
+    std::wstring to_lower(std::wstring s)
+    {
+        std::transform(s.begin( ), s.end( ), s.begin( ),
+            [](wchar_t c) { return (wchar_t)towlower(c); });
+        return s;
+    }
+
+    std::string fmt_mac(const void* ptr)
+    {
+        if (ptr == nullptr) return "null";
+
+        const auto* mac = reinterpret_cast<const unsigned char*>(ptr);
+        char buf[18];
+        std::snprintf(buf, sizeof(buf), "%02X-%02X-%02X-%02X-%02X-%02X",
+            mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+        return buf;
+    }
+
     session_profile generate_session_profile()
     {
         session_profile profile;
